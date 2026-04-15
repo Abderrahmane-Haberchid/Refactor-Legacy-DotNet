@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Refacto.DotNet.Controllers.Enums;
 
 namespace Refacto.DotNet.Controllers.Entities
 {
@@ -18,7 +19,7 @@ namespace Refacto.DotNet.Controllers.Entities
         public int Available { get; set; }
 
         [Column("type")]
-        public string? Type { get; set; }
+        public ProductType? Type { get; set; }
 
         [Column("name")]
         public string? Name { get; set; }

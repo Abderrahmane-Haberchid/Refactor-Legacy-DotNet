@@ -1,0 +1,122 @@
+using Microsoft.EntityFrameworkCore;
+using Refacto.DotNet.Controllers.Database.Context;
+using Refacto.DotNet.Controllers.Dtos.Product;
+using Refacto.DotNet.Controllers.Entities;
+using Refacto.DotNet.Controllers.Enums;
+using Refacto.DotNet.Controllers.Respository;
+
+namespace Refacto.DotNet.Controllers.Services.Impl;
+
+public class ProcessOrderService : IProcessOrderService
+{
+    private readonly AppDbContext _appDbContext;
+    private readonly ILogger<ProcessOrderService> _logger;
+    private readonly IProductService _productService;
+    private readonly IOrderRepository _orderRepository;
+
+    public ProcessOrderService(
+        AppDbContext appDbContext,
+        ILogger<ProcessOrderService> logger,
+        IProductService productService,
+        IOrderRepository orderRepository
+        )
+    {
+        _appDbContext = appDbContext;
+        _logger = logger;
+        _productService = productService;
+        _orderRepository = orderRepository;
+    }
+    
+    
+    public async Task<ProcessOrderResponse> OrderProcessor(long orderId, CancellationToken ct = default)
+    {
+        try
+        {
+            // 1. Validation, fail fast
+            var order = await _orderRepository.GetOrderByIdAsync(orderId, ct);
+
+            if (order is null)
+                throw new KeyNotFoundException("Order not found");
+        
+            _logger.LogInformation($"Processing order {order}");
+        
+            if(order.Items != null && !order.Items.Any())
+                throw new Exception("Items not found");
+        
+        
+            // 2. Apply busness logic
+            var products = order.Items;
+
+            await CheckProductAvailabilityAsync(products, ct);
+
+            return new ProcessOrderResponse(order.Id);
+        }
+        catch(Exception ex)
+        {
+            _logger.LogError(ex.Message);
+            throw;
+        }
+        
+        
+    }
+
+    private async Task CheckProductAvailabilityAsync(ICollection<Product> products, CancellationToken ct)
+    {
+        foreach (var product in products)
+        {
+            switch (product.Type)
+            {
+                case ProductType.NORMAL:
+                    await HandleNormalProductAsync(product, ct);
+                    break;
+                case ProductType.SEASONAL:
+                    await HandleSeasonalProductAsync(product, ct);
+                    break;
+                case ProductType.EXPIRABLE:
+                    await HandleExpirableProductAsync(product, ct);
+                    break;
+                case null:
+                    throw new NullReferenceException("Product not found");
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+        
+    }
+
+    private async Task HandleNormalProductAsync(Product product, CancellationToken ct)
+    {
+        if (product.Available > 0)
+        {
+            product.Available -= 1;
+            _appDbContext.Entry(product).State = EntityState.Modified;
+        }
+        else if (product.LeadTime > 0)
+        {
+            await _productService.NotifyDelayAsync(product.LeadTime, product, ct);
+        }
+        await _appDbContext.SaveChangesAsync(ct);
+    }
+    
+    private async Task HandleSeasonalProductAsync(Product product, CancellationToken ct)
+    {
+        if (DateTime.Now.Date > product.SeasonStartDate && DateTime.Now.Date < product.SeasonEndDate && product.Available > 0)
+        {
+            product.Available -= 1;
+        }
+        await _productService.HandleSeasonalProductAsync(product, ct);
+        
+        await _appDbContext.SaveChangesAsync(ct);
+    }
+    
+    private async Task HandleExpirableProductAsync(Product product, CancellationToken ct)
+    {
+        if (product.Available > 0 && product.ExpiryDate > DateTime.Now.Date)
+        {
+            product.Available -= 1;
+        }
+        
+        await _productService.HandleExpiredProductAsync(product, ct);
+        
+    }
+}

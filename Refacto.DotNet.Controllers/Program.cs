@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Refacto.DotNet.Controllers.Database.Context;
+using Refacto.DotNet.Controllers.Respository;
 using Refacto.DotNet.Controllers.Services;
 using Refacto.DotNet.Controllers.Services.Impl;
 
@@ -11,8 +12,12 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<ProductService>();
+builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<IProcessOrderService, ProcessOrderService>();
+
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
     _ = options.UseInMemoryDatabase($"InMemoryDb");
