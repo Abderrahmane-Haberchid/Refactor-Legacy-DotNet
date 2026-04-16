@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Refacto.DotNet.Controllers.Database.Context;
-using Refacto.DotNet.Controllers.Dtos.Product;
+using Refacto.DotNet.Controllers.Dtos.Response;
 using Refacto.DotNet.Controllers.Entities;
 using Refacto.DotNet.Controllers.Enums;
 using Refacto.DotNet.Controllers.Respository;
@@ -28,7 +28,7 @@ public class ProcessOrderService : IProcessOrderService
     }
     
     
-    public async Task<ProcessOrderResponse> OrderProcessor(long orderId, CancellationToken ct = default)
+    public async Task<ProcessOrderResponse> OrderProcessorAsync(long orderId, CancellationToken ct = default)
     {
         try
         {
@@ -56,8 +56,6 @@ public class ProcessOrderService : IProcessOrderService
             _logger.LogError(ex.Message);
             throw;
         }
-        
-        
     }
 
     private async Task CheckProductAvailabilityAsync(ICollection<Product> products, CancellationToken ct)
@@ -81,7 +79,7 @@ public class ProcessOrderService : IProcessOrderService
                     throw new ArgumentOutOfRangeException();
             }
         }
-        
+        await _appDbContext.SaveChangesAsync(ct);
     }
 
     private async Task HandleNormalProductAsync(Product product, CancellationToken ct)
@@ -95,7 +93,6 @@ public class ProcessOrderService : IProcessOrderService
         {
             await _productService.NotifyDelayAsync(product.LeadTime, product, ct);
         }
-        await _appDbContext.SaveChangesAsync(ct);
     }
     
     private async Task HandleSeasonalProductAsync(Product product, CancellationToken ct)
@@ -105,8 +102,6 @@ public class ProcessOrderService : IProcessOrderService
             product.Available -= 1;
         }
         await _productService.HandleSeasonalProductAsync(product, ct);
-        
-        await _appDbContext.SaveChangesAsync(ct);
     }
     
     private async Task HandleExpirableProductAsync(Product product, CancellationToken ct)
@@ -115,8 +110,6 @@ public class ProcessOrderService : IProcessOrderService
         {
             product.Available -= 1;
         }
-        
         await _productService.HandleExpiredProductAsync(product, ct);
-        
     }
 }

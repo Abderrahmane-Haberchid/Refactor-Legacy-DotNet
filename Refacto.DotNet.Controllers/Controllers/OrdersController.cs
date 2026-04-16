@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using Refacto.DotNet.Controllers.Dtos.Product;
+using Refacto.DotNet.Controllers.Dtos.Response;
 using Refacto.DotNet.Controllers.Services;
 
 namespace Refacto.DotNet.Controllers.Controllers
@@ -15,22 +15,23 @@ namespace Refacto.DotNet.Controllers.Controllers
             _processOrderService =  productService;
         }
         
-        // In order to maintain backward compatibility
-        // Contarct and signature dont change
-
+        /*
+         * In order to maintain backward compatibility
+         * Contract and signature remain the same
+         */
         [HttpPost("{orderId}/processOrder")]
         [ProducesResponseType(200)]
-        public ActionResult<ProcessOrderResponse> ProcessOrder(long orderId)
+        public async Task<ActionResult<ProcessOrderResponse>> ProcessOrder(long orderId)
         {
             try
             {
-                var orderResponse = _processOrderService.OrderProcessor(orderId);
+                var orderResponse = await _processOrderService.OrderProcessorAsync(orderId);
 
-                return Ok(new ProcessOrderResponse(orderResponse.Id)); // 200
+                return Ok(new ProcessOrderResponse(orderResponse.id)); // 200
             }
             catch (Exception e)
             {
-                return BadRequest(e.Message);
+                return BadRequest(e.Message); // 400
             }
             
         }

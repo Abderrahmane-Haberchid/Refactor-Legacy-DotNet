@@ -2,7 +2,7 @@ using Refacto.DotNet.Controllers.Entities;
 
 namespace Refacto.DotNet.Controllers.Respository;
 
-public interface IOrderRepository
+public interface IOrderRepository 
 {
     public Task<Order> GetOrderByIdAsync(long orderId, CancellationToken token);
 }
