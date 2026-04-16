@@ -48,8 +48,10 @@ namespace Refacto.DotNet.Controllers.Tests.Services
                 .ReturnsAsync(1);
 
             // Setup Entry mock
-            _mockDbContext.Setup(x => x.Entry(It.IsAny<Product>()))
-                .Returns(new Mock<EntityEntry<Product>>().Object);
+            
+            // No need
+           // _mockDbContext.Setup(x => x.Entry(It.IsAny<Product>()))
+             //  .Returns(new Mock<EntityEntry<Product>>().Object);
 
             // WHEN
             await _productService.NotifyDelayAsync(product.LeadTime, product, CancellationToken.None);

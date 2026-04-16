@@ -106,10 +106,7 @@ public class ProcessOrderService : IProcessOrderService
     
     private async Task HandleExpirableProductAsync(Product product, CancellationToken ct)
     {
-        if (product.Available > 0 && product.ExpiryDate > DateTime.Now.Date)
-        {
-            product.Available -= 1;
-        }
+        // Decrement is duplicated, delegate full process to product service
         await _productService.HandleExpiredProductAsync(product, ct);
     }
 }

@@ -33,16 +33,19 @@ namespace Refacto.Dotnet.Controllers.Tests.Controllers
                     {
                         _ = services.Remove(descriptor);
                     }
-
+                    // moved outside lambda, it was causing test failure
+                    var dbName = $"InMemoryDbForTesting-{Guid.NewGuid()}";
                     // Add in-memory database for testing
                     _ = services.AddDbContext<AppDbContext>(options =>
                     {
-                        _ = options.UseInMemoryDatabase($"InMemoryDbForTesting-{Guid.NewGuid()}");
+                        _ = options.UseInMemoryDatabase(dbName); 
                     });
                     
                     // Replace notification service with mock
                     _ = services.Remove(services.SingleOrDefault(s => s.ServiceType == typeof(INotificationService)));
                     _ = services.AddSingleton(_mockNotificationService.Object);
+
+                    _ = services.AddSingleton(_context);
                 });
             });
 
@@ -229,7 +232,7 @@ namespace Refacto.Dotnet.Controllers.Tests.Controllers
 
         private static Order CreateOrder(ICollection<Product> products)
         {
-            return new Order { Items = products };
+            return new Order { Id = new Random().Next(1, 999999), Items = products };  // id set manually
         }
         
         private record ProcessOrderResponse(long id);
