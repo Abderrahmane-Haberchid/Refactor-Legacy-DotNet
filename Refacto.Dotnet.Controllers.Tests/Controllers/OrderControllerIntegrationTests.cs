@@ -18,38 +18,31 @@ namespace Refacto.Dotnet.Controllers.Tests.Controllers
         private readonly WebApplicationFactory<Program> _factory;
         private readonly AppDbContext _context;
         private readonly Mock<INotificationService> _mockNotificationService;
-
         public OrderControllerIntegrationTests(WebApplicationFactory<Program> factory)
         {
             _mockNotificationService = new Mock<INotificationService>();
 
             _factory = factory.WithWebHostBuilder(builder =>
             {
-                _ = builder.ConfigureServices(services =>
+                builder.ConfigureServices(services =>
                 {
-                    // Remove existing DbContext configuration
-                    ServiceDescriptor? descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
-                    if (descriptor != null)
-                    {
-                        _ = services.Remove(descriptor);
-                    }
-                    // moved outside lambda, it was causing test failure
-                    var dbName = $"InMemoryDbForTesting-{Guid.NewGuid()}";
-                    // Add in-memory database for testing
-                    _ = services.AddDbContext<AppDbContext>(options =>
-                    {
-                        _ = options.UseInMemoryDatabase(dbName); 
-                    });
-                    
-                    // Replace notification service with mock
-                    _ = services.Remove(services.SingleOrDefault(s => s.ServiceType == typeof(INotificationService)));
-                    _ = services.AddSingleton(_mockNotificationService.Object);
+                    // Remove existing DbContext
+                    var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
+                    if (descriptor != null) services.Remove(descriptor);
 
-                    _ = services.AddSingleton(_context);
+                    // Add in-memory database
+                    var dbName = $"InMemoryDbForTesting-{Guid.NewGuid()}";
+                    services.AddDbContext<AppDbContext>(options =>
+                        options.UseInMemoryDatabase(dbName));
+
+                    // Replace notification service with mock
+                    var notificationDescriptor = services.SingleOrDefault(s => s.ServiceType == typeof(INotificationService));
+                    if (notificationDescriptor != null) services.Remove(notificationDescriptor);
+                    services.AddSingleton(_mockNotificationService.Object);
                 });
             });
 
-            IServiceScope scope = _factory.Services.CreateScope();
+            var scope = _factory.Services.CreateScope();
             _context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             _context.Database.EnsureCreated();
         }
