@@ -15,23 +15,19 @@ namespace Refacto.DotNet.Controllers.Controllers
             _processOrderService =  productService;
         }
         
-        /*
-         * In order to maintain backward compatibility
-         * Contract and signature remain the same
-         */
         [HttpPost("{orderId}/processOrder")]
         [ProducesResponseType(200)]
-        public async Task<ActionResult<ProcessOrderResponse>> ProcessOrder(long orderId)
+        public async Task<ActionResult<ProcessOrderResponse>> ProcessOrder(long orderId, CancellationToken token)
         {
             try
             {
-                var orderResponse = await _processOrderService.OrderProcessorAsync(orderId);
+                var orderResponse = await _processOrderService.OrderProcessorAsync(orderId, token);
 
-                return Ok(new ProcessOrderResponse(orderResponse.id)); // 200
+                return Ok(new ProcessOrderResponse(orderResponse.id));
             }
             catch (Exception e)
             {
-                return BadRequest(e.Message); // 400
+                return BadRequest(e.Message); 
             }
             
         }

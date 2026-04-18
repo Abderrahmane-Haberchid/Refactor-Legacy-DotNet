@@ -8,26 +8,22 @@ using Refacto.DotNet.Controllers.Services;
 using Refacto.DotNet.Controllers.Services.Impl;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Refacto.DotNet.Controllers.Respository;
 
 namespace Refacto.DotNet.Controllers.Tests.Services
 {
     public class ProductServiceTests
     {
         private readonly Mock<INotificationService> _mockNotificationService;
-        private readonly Mock<AppDbContext> _mockDbContext;
+        private readonly Mock<IOrderRepository> _orderRepository;
         private readonly IProductService _productService;
 
         public ProductServiceTests()
         {
             _mockNotificationService = new Mock<INotificationService>();
-            _mockDbContext = new Mock<AppDbContext>();
+            _orderRepository = new Mock<IOrderRepository>();
             
-            // Setup DbSet mock
-            var mockDbSet = new Mock<DbSet<Product>>();
-            _ = _mockDbContext.Setup(x => x.Products).Returns(mockDbSet.Object);
-            _ = _mockDbContext.Setup(x => x.Set<Product>()).Returns(mockDbSet.Object);
-            
-            _productService = new ProductService(_mockNotificationService.Object, _mockDbContext.Object);
+            _productService = new ProductService(_mockNotificationService.Object, _orderRepository.Object);
         }
 
         [Fact]
@@ -44,14 +40,7 @@ namespace Refacto.DotNet.Controllers.Tests.Services
             };
 
             // Setup SaveChangesAsync
-            _ = _mockDbContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-                .ReturnsAsync(1);
-
-            // Setup Entry mock
-            
-            // No need
-           // _mockDbContext.Setup(x => x.Entry(It.IsAny<Product>()))
-             //  .Returns(new Mock<EntityEntry<Product>>().Object);
+            _orderRepository.Setup(x => x.SaveToDatabaseAsync(It.IsAny<CancellationToken>()));
 
             // WHEN
             await _productService.NotifyDelayAsync(product.LeadTime, product, CancellationToken.None);
@@ -78,7 +67,7 @@ namespace Refacto.DotNet.Controllers.Tests.Services
                 ExpiryDate = DateTime.Now.AddDays(-2) // Expired
             };
 
-            _ = _mockDbContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            _ = _orderRepository.Setup(x => x.SaveToDatabaseAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(1);
 
             // WHEN
@@ -106,7 +95,7 @@ namespace Refacto.DotNet.Controllers.Tests.Services
                 ExpiryDate = DateTime.Now.AddDays(26) // Not expired
             };
 
-            _ = _mockDbContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            _ = _orderRepository.Setup(x => x.SaveToDatabaseAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(1);
 
             // WHEN
@@ -134,7 +123,7 @@ namespace Refacto.DotNet.Controllers.Tests.Services
                 SeasonEndDate = DateTime.Now.AddDays(58)
             };
 
-            _ = _mockDbContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            _ = _orderRepository.Setup(x => x.SaveToDatabaseAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(1);
 
             // WHEN
@@ -161,7 +150,7 @@ namespace Refacto.DotNet.Controllers.Tests.Services
                 SeasonEndDate = DateTime.Now.AddDays(240)
             };
 
-            _ = _mockDbContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            _ = _orderRepository.Setup(x => x.SaveToDatabaseAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(1);
 
             // WHEN

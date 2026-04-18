@@ -9,19 +9,16 @@ namespace Refacto.DotNet.Controllers.Services.Impl;
 
 public class ProcessOrderService : IProcessOrderService
 {
-    private readonly AppDbContext _appDbContext;
     private readonly ILogger<ProcessOrderService> _logger;
     private readonly IProductService _productService;
     private readonly IOrderRepository _orderRepository;
 
     public ProcessOrderService(
-        AppDbContext appDbContext,
         ILogger<ProcessOrderService> logger,
         IProductService productService,
         IOrderRepository orderRepository
         )
     {
-        _appDbContext = appDbContext;
         _logger = logger;
         _productService = productService;
         _orderRepository = orderRepository;
@@ -79,7 +76,8 @@ public class ProcessOrderService : IProcessOrderService
                     throw new ArgumentOutOfRangeException();
             }
         }
-        await _appDbContext.SaveChangesAsync(ct);
+
+        await _orderRepository.SaveToDatabaseAsync(ct);
     }
 
     private async Task HandleNormalProductAsync(Product product, CancellationToken ct)
@@ -87,7 +85,7 @@ public class ProcessOrderService : IProcessOrderService
         if (product.Available > 0)
         {
             product.Available -= 1;
-            _appDbContext.Entry(product).State = EntityState.Modified;
+            //_appDbContext.Entry(product).State = EntityState.Modified;
         }
         else if (product.LeadTime > 0)
         {

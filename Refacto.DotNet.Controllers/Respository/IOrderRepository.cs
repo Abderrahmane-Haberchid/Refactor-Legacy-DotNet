@@ -4,5 +4,6 @@ namespace Refacto.DotNet.Controllers.Respository;
 
 public interface IOrderRepository 
 {
-    public Task<Order> GetOrderByIdAsync(long orderId, CancellationToken token);
+    public Task<Order?> GetOrderByIdAsync(long orderId, CancellationToken token);
+    public Task<int> SaveToDatabaseAsync(CancellationToken token);
 }

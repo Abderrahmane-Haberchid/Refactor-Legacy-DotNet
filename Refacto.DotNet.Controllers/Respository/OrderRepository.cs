@@ -13,7 +13,7 @@ public class OrderRepository :  IOrderRepository
         _appDbContext = appDbContext;
     }
     
-    public async Task<Order> GetOrderByIdAsync(long orderId, CancellationToken token)
+    public async Task<Order?> GetOrderByIdAsync(long orderId, CancellationToken token)
     {
         var order = await _appDbContext.Orders
             .Include(o => o.Items)
@@ -23,5 +23,10 @@ public class OrderRepository :  IOrderRepository
             throw new InvalidOperationException($"Order {orderId} not found");
     
         return order;
+    }
+
+    public async Task<int> SaveToDatabaseAsync(CancellationToken token)
+    {
+        return await _appDbContext.SaveChangesAsync(token);
     }
 }

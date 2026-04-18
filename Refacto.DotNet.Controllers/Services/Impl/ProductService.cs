@@ -1,17 +1,18 @@
 ﻿using Refacto.DotNet.Controllers.Database.Context;
 using Refacto.DotNet.Controllers.Entities;
+using Refacto.DotNet.Controllers.Respository;
 
 namespace Refacto.DotNet.Controllers.Services.Impl
 {
     public class ProductService : IProductService
     {
         private readonly INotificationService _notificationService;
-        private readonly AppDbContext _appDbContext;
+        private readonly IOrderRepository _orderRepository;
 
-        public ProductService(INotificationService notificationService, AppDbContext appDbContext)
+        public ProductService(INotificationService notificationService, IOrderRepository orderRepository)
         {
             _notificationService = notificationService;
-            _appDbContext = appDbContext;
+            _orderRepository = orderRepository;
         }
 
         public async Task HandleSeasonalProductAsync(Product product, CancellationToken ct)
@@ -29,7 +30,8 @@ namespace Refacto.DotNet.Controllers.Services.Impl
             {
                 await NotifyDelayAsync(product.LeadTime, product, ct);
             }
-            await _appDbContext.SaveChangesAsync(ct);
+
+            await _orderRepository.SaveToDatabaseAsync(ct);
         }
 
         public async Task HandleExpiredProductAsync(Product product, CancellationToken ct)
@@ -44,13 +46,13 @@ namespace Refacto.DotNet.Controllers.Services.Impl
                 product.Available = 0;
             }
             
-            await _appDbContext.SaveChangesAsync(ct);
+            await _orderRepository.SaveToDatabaseAsync(ct);
         }
         
         public async Task NotifyDelayAsync(int leadTime, Product product, CancellationToken ct)
         {
             product.LeadTime = leadTime;
-            await _appDbContext.SaveChangesAsync(ct);
+            await _orderRepository.SaveToDatabaseAsync(ct);
             _notificationService.SendDelayNotification(leadTime, product.Name);
         }
     }
