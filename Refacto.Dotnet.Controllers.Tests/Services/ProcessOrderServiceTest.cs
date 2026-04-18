@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Refacto.DotNet.Controllers.Entities;
@@ -34,5 +35,20 @@ public class ProcessOrderServiceTest
 
         // Act + Assert
         await Assert.ThrowsAsync<KeyNotFoundException>(async () => await _sut.OrderProcessorAsync(orderId, CancellationToken.None));
+    }
+
+    [Fact]
+    public async Task OrderProcessorAsync_ShouldThrowException_WhenOrderItemsIsNull()
+    {
+        var order = new Order()
+        {
+            Id = 5,
+            Items = new List<Product>()
+        };
+        
+        _orderRepositoryMoq.Setup(s => s.GetOrderByIdAsync(order.Id, CancellationToken.None))
+            .Returns(Task.FromResult(order)!);
+        
+        await Assert.ThrowsAsync<Exception>(async () => await _sut.OrderProcessorAsync(order.Id, CancellationToken.None));
     }
 }
