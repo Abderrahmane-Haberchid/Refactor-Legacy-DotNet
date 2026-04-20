@@ -9,17 +9,20 @@ using Refacto.DotNet.Controllers.Enums;
 using Refacto.DotNet.Controllers.Services;
 using System.Net;
 using System.Text.Json;
+using Xunit.Abstractions;
 
 namespace Refacto.Dotnet.Controllers.Tests.Controllers
 {
     [Collection("Sequential")]
     public class OrderControllerIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
     {
+        private readonly ITestOutputHelper _testOutputHelper;
         private readonly WebApplicationFactory<Program> _factory;
         private readonly AppDbContext _context;
         private readonly Mock<INotificationService> _mockNotificationService;
-        public OrderControllerIntegrationTests(WebApplicationFactory<Program> factory)
+        public OrderControllerIntegrationTests(WebApplicationFactory<Program> factory, ITestOutputHelper testOutputHelper)
         {
+            _testOutputHelper = testOutputHelper;
             _mockNotificationService = new Mock<INotificationService>();
 
             _factory = factory.WithWebHostBuilder(builder =>
@@ -63,6 +66,7 @@ namespace Refacto.Dotnet.Controllers.Tests.Controllers
 
             // Act
             var response = await client.PostAsync($"/orders/{order.Id}/processOrder", null);
+            _testOutputHelper.WriteLine($"Responde details: {response.Content}");
             
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
