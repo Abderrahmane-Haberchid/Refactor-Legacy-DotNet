@@ -25,6 +25,17 @@ public class OrderRepository :  IOrderRepository
         return order;
     }
 
+    public async Task SaveOrderAsync(Order order, CancellationToken token)
+    {
+        ArgumentNullException.ThrowIfNull(order);
+
+        if (order.Items != null && !order.Items.Any())
+            throw new InvalidOperationException("Order items are required");
+        
+        await _appDbContext.Orders.AddAsync(order, token);
+        await _appDbContext.SaveChangesAsync(token);
+    }
+
     public async Task<int> SaveToDatabaseAsync(CancellationToken token)
     {
         return await _appDbContext.SaveChangesAsync(token);

@@ -17,12 +17,12 @@ namespace Refacto.DotNet.Controllers.Controllers
         
         [HttpPost("{orderId}/processOrder")]
         [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
         public async Task<ActionResult<ProcessOrderResponse>> ProcessOrder(long orderId, CancellationToken token)
         {
             try
             {
                 var orderResponse = await _processOrderService.OrderProcessorAsync(orderId, token);
-
                 return Ok(new ProcessOrderResponse(orderResponse.id));
             }
             catch (Exception e)

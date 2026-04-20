@@ -1,13 +1,8 @@
-﻿
-using Microsoft.EntityFrameworkCore;
-using Moq;
-using Refacto.DotNet.Controllers.Database.Context;
+﻿using Moq;
 using Refacto.DotNet.Controllers.Entities;
 using Refacto.DotNet.Controllers.Enums;
 using Refacto.DotNet.Controllers.Services;
 using Refacto.DotNet.Controllers.Services.Impl;
-using System.Linq.Expressions;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Refacto.DotNet.Controllers.Respository;
 
 namespace Refacto.DotNet.Controllers.Tests.Services

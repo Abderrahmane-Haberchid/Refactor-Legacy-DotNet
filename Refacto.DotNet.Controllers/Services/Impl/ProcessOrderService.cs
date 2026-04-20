@@ -30,7 +30,7 @@ public class ProcessOrderService : IProcessOrderService
         try
         {
             // 1. Validation, fail fast
-            var order = await _orderRepository.GetOrderByIdAsync(orderId, ct);
+            var order = await _orderRepository.GetOrderByIdAsync(orderId, ct); // Repo layer
 
             if (order is null)
                 throw new KeyNotFoundException("Order not found");
